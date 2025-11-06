@@ -4,44 +4,61 @@ import Sentiment from "sentiment";
 const app = express();
 app.use(express.json());
 
+// Initialize sentiment analyzer with custom words for English and Tagalog
 const sentiment = new Sentiment();
-
-// Add custom Tagalog/Taglish words
 const customWords = {
+  // Positive
   maganda: 3,
   mabuti: 3,
   ayos: 2,
   maayos: 2,
   bilis: 3,
+  awesome: 3,
+  great: 3,
+  friendly: 2,
+  nice: 2,
+  excellent: 3,
+  galing: 3,
+  dali: 2,
+
+  // Negative
   panget: -3,
   mabagal: -2,
+  delays: -2,
   madumi: -2,
   nakakainis: -3,
-  delays: -2
+  bad: -3,
+  terrible: -3,
+  slow: -2,
+  hindi: -2
 };
 
+// Sentiment analysis endpoint
 app.post("/analyze", (req, res) => {
   const { comment } = req.body;
-
   if (!comment) {
     return res.status(400).json({ error: "No comment provided" });
   }
 
-  // Analyze sentiment with custom words
-  const result = sentiment.analyze(comment, { extras: customWords });
+  // Analyze sentiment
+  const result = sentiment.analyze(comment.toLowerCase(), { extras: customWords });
 
-  // Determine label
-  let sentimentLabel = "Neutral 😐";
-  if (result.score > 1) sentimentLabel = "Positive 😊";
-  else if (result.score < -1) sentimentLabel = "Negative 😞";
+  let sentimentText = "Neutral";
+  if (result.score > 0) sentimentText = "Positive";
+  else if (result.score < 0) sentimentText = "Negative";
+
+  // Create a user-friendly summary
+  const summary = `**Analysis:** ${sentimentText} — user feedback is ${sentimentText === "Neutral" ? "mixed or balanced" : (sentimentText === "Positive" ? "satisfied or pleased" : "frustrated or dissatisfied")}.`;
 
   res.json({
     comment,
-    sentiment: sentimentLabel,
-    analysis: `**Analysis:** ${sentimentLabel} — AI detected sentiment score ${result.score}.`
+    sentiment: sentimentText,
+    summary
   });
 });
 
-app.listen(3000, () => {
-  console.log("✅ AI Analyzer running on port 3000");
+// Start server
+const PORT = process.env.PORT || 3000;
+app.listen(PORT, () => {
+  console.log(`✅ AI Analyzer running on port ${PORT}`);
 });
