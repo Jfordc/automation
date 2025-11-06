@@ -1,10 +1,25 @@
 import express from "express";
-import fetch from "node-fetch";
+import Sentiment from "sentiment";
 
 const app = express();
 app.use(express.json());
 
-// 🧠 Sentiment Analyzer Endpoint
+const sentiment = new Sentiment();
+
+// Add custom Tagalog/Taglish words
+const customWords = {
+  maganda: 3,
+  mabuti: 3,
+  ayos: 2,
+  maayos: 2,
+  bilis: 3,
+  panget: -3,
+  mabagal: -2,
+  madumi: -2,
+  nakakainis: -3,
+  delays: -2
+};
+
 app.post("/analyze", (req, res) => {
   const { comment } = req.body;
 
@@ -12,44 +27,21 @@ app.post("/analyze", (req, res) => {
     return res.status(400).json({ error: "No comment provided" });
   }
 
-  const text = comment.toLowerCase();
-  let analysis = "";
-  let sentiment = "";
+  // Analyze sentiment with custom words
+  const result = sentiment.analyze(comment, { extras: customWords });
 
-  if (
-    text.includes("good") ||
-    text.includes("great") ||
-    text.includes("excellent") ||
-    text.includes("maganda") ||
-    text.includes("ayos") ||
-    text.includes("mabuti")
-  ) {
-    sentiment = "Positive";
-    analysis = "Positive — user expresses satisfaction and praise.";
-  } else if (
-    text.includes("bad") ||
-    text.includes("slow") ||
-    text.includes("pangit") ||
-    text.includes("madumi") ||
-    text.includes("delays") ||
-    text.includes("problem")
-  ) {
-    sentiment = "Negative";
-    analysis = "Negative — user is frustrated or dissatisfied with the service.";
-  } else {
-    sentiment = "Neutral";
-    analysis = "Neutral — user feedback is mixed or balanced.";
-  }
+  // Determine label
+  let sentimentLabel = "Neutral 😐";
+  if (result.score > 1) sentimentLabel = "Positive 😊";
+  else if (result.score < -1) sentimentLabel = "Negative 😞";
 
   res.json({
     comment,
-    sentiment,
-    analysis,
-    summary: `Analysis: ${analysis}`,
+    sentiment: sentimentLabel,
+    analysis: `**Analysis:** ${sentimentLabel} — AI detected sentiment score ${result.score}.`
   });
 });
 
-// ✅ Start the server
 app.listen(3000, () => {
   console.log("✅ AI Analyzer running on port 3000");
 });
