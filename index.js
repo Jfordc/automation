@@ -1,11 +1,10 @@
-// index.js
 import express from "express";
 import fetch from "node-fetch";
 
 const app = express();
 app.use(express.json());
 
-// ✅ Sentiment Analyzer Endpoint
+// 🧠 Sentiment Analyzer Endpoint
 app.post("/analyze", (req, res) => {
   const { comment } = req.body;
 
@@ -14,20 +13,39 @@ app.post("/analyze", (req, res) => {
   }
 
   const text = comment.toLowerCase();
-  let sentiment;
+  let analysis = "";
+  let sentiment = "";
 
-  if (text.includes("good") || text.includes("great") || text.includes("maganda")) {
-    sentiment = "Positive 😊";
-  } else if (text.includes("bad") || text.includes("delays") || text.includes("pangit")) {
-    sentiment = "Negative 😞";
+  if (
+    text.includes("good") ||
+    text.includes("great") ||
+    text.includes("excellent") ||
+    text.includes("maganda") ||
+    text.includes("ayos") ||
+    text.includes("mabuti")
+  ) {
+    sentiment = "Positive";
+    analysis = "Positive — user expresses satisfaction and praise.";
+  } else if (
+    text.includes("bad") ||
+    text.includes("slow") ||
+    text.includes("pangit") ||
+    text.includes("madumi") ||
+    text.includes("delays") ||
+    text.includes("problem")
+  ) {
+    sentiment = "Negative";
+    analysis = "Negative — user is frustrated or dissatisfied with the service.";
   } else {
-    sentiment = "Neutral 😐";
+    sentiment = "Neutral";
+    analysis = "Neutral — user feedback is mixed or balanced.";
   }
 
   res.json({
     comment,
     sentiment,
-    summary: `The comment "${comment}" seems ${sentiment}.`
+    analysis,
+    summary: `Analysis: ${analysis}`,
   });
 });
 
